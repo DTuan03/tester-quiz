@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tester Manual & API Postman Quiz</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --border: #e5e7eb;
+      --soft: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1d4ed8, #0f172a);
+      color: white;
+      padding: 28px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .hero p {
+      margin: 0;
+      opacity: 0.9;
+    }
+    .panel, .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr auto auto;
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input[type="file"], select, input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      color: var(--text);
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: var(--primary);
+      color: white;
+      transition: 0.15s ease;
+      white-space: nowrap;
+    }
+    button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    button.secondary {
+      background: #111827;
+    }
+    button.ghost {
+      background: #eef2ff;
+      color: #1d4ed8;
+    }
+    button.check {
+      background: var(--success);
+      margin-top: 12px;
+    }
+    button.reset {
+      background: #6b7280;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .stat {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 12px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 22px;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .badge {
+      font-size: 12px;
+      background: var(--soft);
+      color: #3730a3;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .question-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 8px 0 14px;
+    }
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+    .option {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      background: white;
+    }
+    .option:hover { background: #f9fafb; }
+    .option input { margin-top: 4px; }
+    .option.correct {
+      border-color: rgba(22, 163, 74, 0.6);
+      background: #f0fdf4;
+    }
+    .option.wrong {
+      border-color: rgba(220, 38, 38, 0.6);
+      background: #fef2f2;
+    }
+    .result {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .result.show { display: block; }
+    .result.ok {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #14532d;
+    }
+    .result.no {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #7f1d1d;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .searchbox {
+      flex: 1;
+      min-width: 230px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 18px;
+    }
+    @media (max-width: 900px) {
+      .controls { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Tester Manual & API Postman Quiz</h1>
+      <p>Web tĩnh đọc toàn bộ câu hỏi từ file Excel, cho học viên chọn đáp án và bấm Check từng câu để xem đáp án + giải thích.</p>
+    </section>
+
+    <section class="panel">
+      <div class="controls">
+        <div>
+          <label>Chọn file Excel câu hỏi (.xlsx)</label>
+          <input id="fileInput" type="file" accept=".xlsx,.xls" />
+        </div>
+        <div>
+          <label>Lọc category</label>
+          <select id="categoryFilter"><option value="">Tất cả</option></select>
+        </div>
+        <button id="loadBtn">Tải câu hỏi</button>
+        <button id="defaultBtn" class="secondary">Tải câu hỏi mặc định</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><strong id="totalCount">0</strong><span>Tổng câu hiển thị</span></div>
+        <div class="stat"><strong id="answeredCount">0</strong><span>Đã check</span></div>
+        <div class="stat"><strong id="correctCount">0</strong><span>Đúng</span></div>
+        <div class="stat"><strong id="scorePercent">0%</strong><span>Tỷ lệ đúng</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <input id="searchInput" class="searchbox" placeholder="Tìm câu hỏi, category, nội dung đáp án..." />
+        <div>
+          <button id="shuffleBtn" class="ghost">Trộn câu hỏi</button>
+          <button id="resetBtn" class="reset">Reset bài làm</button>
+        </div>
+      </div>
+      <div id="quiz"></div>
+    </section>
+
+    <p class="footer-note">
+      Gợi ý: khi upload lên hosting tĩnh, để file Excel cùng thư mục với file HTML và đặt đúng tên <b>tester_questions_6_topics_240.xlsx</b>.
+    </p>
+  </div>
+
+<script>
+let allQuestions = [];
+let currentQuestions = [];
+let checkedMap = new Map();
+
+const requiredColumns = ["id","category","level","type","question","option_a","option_b","option_c","option_d","correct_answer","explanation"];
+
+function normalizeKey(k) {
+  return String(k || "").trim().toLowerCase();
+}
+
+function normalizeRow(row, index) {
+  const obj = {};
+  for (const [key, value] of Object.entries(row)) {
+    obj[normalizeKey(key)] = value;
+  }
+  return {
+    id: String(obj.id || `Q${index + 1}`).trim(),
+    category: String(obj.category || "Uncategorized").trim(),
+    level: String(obj.level || "").trim(),
+    type: String(obj.type || "").trim(),
+    question: String(obj.question || "").trim(),
+    option_a: String(obj.option_a || "").trim(),
+    option_b: String(obj.option_b || "").trim(),
+    option_c: String(obj.option_c || "").trim(),
+    option_d: String(obj.option_d || "").trim(),
+    correct_answer: String(obj.correct_answer || "").trim().toUpperCase(),
+    explanation: String(obj.explanation || "").trim()
+  };
+}
+
+function validateQuestions(rows) {
+  const valid = rows.filter(q =>
+    q.question &&
+    q.option_a && q.option_b && q.option_c && q.option_d &&
+    ["A","B","C","D"].includes(q.correct_answer)
+  );
+  if (!valid.length) {
+    alert("Không tìm thấy câu hỏi hợp lệ. Hãy kiểm tra sheet questions và các cột: " + requiredColumns.join(", "));
+  }
+  return valid;
+}
+
+function readWorkbook(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type: "array" });
+  const sheetName = wb.SheetNames.includes("questions") ? "questions" : wb.SheetNames[0];
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+  allQuestions = validateQuestions(rows.map(normalizeRow));
+  checkedMap.clear();
+  populateCategories();
+  applyFiltersAndRender();
+}
+
+function populateCategories() {
+  const select = document.getElementById("categoryFilter");
+  const old = select.value;
+  const cats = [...new Set(allQuestions.map(q => q.category))].sort();
+  select.innerHTML = '<option value="">Tất cả</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  if (cats.includes(old)) select.value = old;
+}
+
+function applyFiltersAndRender() {
+  const category = document.getElementById("categoryFilter").value;
+  const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+  let list = allQuestions.slice();
+
+  if (category) list = list.filter(q => q.category === category);
+
+  if (keyword) {
+    list = list.filter(q => [
+      q.id, q.category, q.level, q.type, q.question, q.option_a, q.option_b, q.option_c, q.option_d, q.explanation
+    ].join(" ").toLowerCase().includes(keyword));
+  }
+
+  currentQuestions = list;
+  renderQuiz();
+  updateStats();
+}
+
+function escapeHtml(str) {
+  return String(str || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function optionText(q, letter) {
+  return q["option_" + letter.toLowerCase()];
+}
+
+function renderQuiz() {
+  const quiz = document.getElementById("quiz");
+  if (!currentQuestions.length) {
+    quiz.innerHTML = `<div class="empty">Chưa có câu hỏi. Hãy chọn file Excel rồi bấm "Tải câu hỏi", hoặc bấm "Tải file mặc định" nếu bạn đang chạy trên hosting tĩnh.</div>`;
+    document.getElementById("totalCount").textContent = "0";
+    return;
+  }
+
+  quiz.innerHTML = currentQuestions.map((q, index) => {
+    const checked = checkedMap.get(q.id);
+    const resultClass = checked ? (checked.isCorrect ? "ok" : "no") : "";
+    const resultText = checked
+      ? `<b>${checked.isCorrect ? "Đúng" : "Sai"}.</b> Đáp án đúng: <b>${q.correct_answer}</b>. ${escapeHtml(q.explanation)}`
+      : "";
+
+    const options = ["A","B","C","D"].map(letter => {
+      let cls = "option";
+      if (checked) {
+        if (letter === q.correct_answer) cls += " correct";
+        else if (letter === checked.selected) cls += " wrong";
+      }
+      return `
+        <label class="${cls}" for="${q.id}_${letter}">
+          <input type="radio" name="${q.id}" id="${q.id}_${letter}" value="${letter}" ${checked ? "disabled" : ""} ${checked && checked.selected === letter ? "checked" : ""}/>
+          <div><b>${letter}.</b> ${escapeHtml(optionText(q, letter))}</div>
+        </label>
+      `;
+    }).join("");
+
+    return `
+      <article class="question-card" data-id="${escapeHtml(q.id)}">
+        <div class="meta">
+          <span class="badge">${escapeHtml(q.id)}</span>
+          <span class="badge">${escapeHtml(q.category)}</span>
+          <span class="badge">${escapeHtml(q.level)}</span>
+          <span class="badge">${escapeHtml(q.type)}</span>
+        </div>
+        <div class="question-title">${index + 1}. ${escapeHtml(q.question)}</div>
+        <div class="options">${options}</div>
+        <button class="check" onclick="checkAnswer('${escapeHtml(q.id)}')" ${checked ? "disabled" : ""}>Check câu này</button>
+        <div class="result ${checked ? "show " + resultClass : ""}">${resultText}</div>
+      </article>
+    `;
+  }).join("");
+
+  document.getElementById("totalCount").textContent = String(currentQuestions.length);
+}
+
+function checkAnswer(id) {
+  const q = currentQuestions.find(x => x.id === id);
+  if (!q) return;
+
+  const selected = document.querySelector(`input[name="${CSS.escape(id)}"]:checked`);
+  if (!selected) {
+    alert("Bạn cần chọn một đáp án trước khi check.");
+    return;
+  }
+
+  const value = selected.value;
+  checkedMap.set(id, {
+    selected: value,
+    isCorrect: value === q.correct_answer
+  });
+
+  renderQuiz();
+  updateStats();
+}
+
+function updateStats() {
+  const visibleIds = new Set(currentQuestions.map(q => q.id));
+  const checked = [...checkedMap.entries()].filter(([id]) => visibleIds.has(id)).map(([,v]) => v);
+  const correct = checked.filter(v => v.isCorrect).length;
+  const percent = checked.length ? Math.round((correct / checked.length) * 100) : 0;
+
+  document.getElementById("totalCount").textContent = String(currentQuestions.length);
+  document.getElementById("answeredCount").textContent = String(checked.length);
+  document.getElementById("correctCount").textContent = String(correct);
+  document.getElementById("scorePercent").textContent = `${percent}%`;
+}
+
+function shuffleCurrent() {
+  for (let i = allQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  }
+  checkedMap.clear();
+  applyFiltersAndRender();
+}
+
+document.getElementById("loadBtn").addEventListener("click", () => {
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    alert("Hãy chọn file .xlsx trước.");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => readWorkbook(e.target.result);
+  reader.readAsArrayBuffer(file);
+});
+
+document.getElementById("defaultBtn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("./tester_questions_6_topics_240.xlsx");
+    if (!res.ok) throw new Error("Không tải được file mặc định.");
+    const buffer = await res.arrayBuffer();
+    readWorkbook(buffer);
+  } catch (err) {
+    alert("Không tải được file mặc định. Nếu bạn mở file HTML trực tiếp bằng file://, hãy chọn file Excel thủ công. Nếu upload hosting, đặt file Excel cùng thư mục với HTML.");
+  }
+});
+
+document.getElementById("categoryFilter").addEventListener("change", applyFiltersAndRender);
+document.getElementById("searchInput").addEventListener("input", applyFiltersAndRender);
+document.getElementById("shuffleBtn").addEventListener("click", shuffleCurrent);
+document.getElementById("resetBtn").addEventListener("click", () => {
+  checkedMap.clear();
+  renderQuiz();
+  updateStats();
+});
+</script>
+</body>
+</html>
